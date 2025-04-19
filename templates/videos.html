@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Redis Video Player</title>
+  </head>
+  <body>
+    <h2>Available Redis Videos</h2>
+    <ul>
+      {% for video in videos %}
+      <li><a href="/watch/{{ video }}">{{ video }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
