@@ -1,0 +1,48 @@
+---
+# Flask HLS App Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-hls-app
+spec:
+  selector:
+    matchLabels:
+      app: flask-hls-app
+  template:
+    metadata:
+      labels:
+        app: flask-hls-app
+    spec:
+      containers:
+      - name: flask
+        image: prabhanjan953/flask-hls-app:latest
+        command: ['sh', '-c']
+        args:
+          - |
+            echo "127.0.0.1 host.docker.internal" >> /etc/hosts &&
+            socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
+            socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
+            python /app/app.py
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REDIS_HOST
+          value: "127.0.0.1"  # Using socat-forwarded Redis
+        - name: VIDEO_SERVER_HOST
+          value: "127.0.0.1"  # Using socat-forwarded NGINX
+
+---
+# Flask Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-hls-app
+spec:
+  type: NodePort
+  selector:
+    app: flask-hls-app
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30500
