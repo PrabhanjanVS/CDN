@@ -5,11 +5,12 @@ import redis
 from flask import Response, render_template
 import threading
 from redispython import store_video_in_redis
+from flask import redirect
 
 NGINX_URL = "http://localhost:8081/videos/"
 
 redis_client = redis.StrictRedis(
-    host="localhost",
+    host="host.docker.internal",
     port=6379,
     db=0,
     username="default",
@@ -60,14 +61,15 @@ def generate_video_stream(video_name):
     clean_name = slugify(urllib.parse.unquote(video_name))
 
     if not is_video_fully_stored(clean_name):
-        return None
+        return None #render_template("watch.html", video_url=f"{NGINX_URL}{video_name}")
 
     video_chunks = get_video_chunks(video_name)
     return b"".join(video_chunks) if video_chunks else None
 
 # ✅ This is the callable function you import in app.py
 def stream_video(video_name):
-    safe_video_name = urllib.parse.unquote(video_name)
+    safe_video_name = urllib.parse.unquote(urllib.parse.unquote(video_name))
+    #safe_video_name = urllib.parse.unquote(video_name)
     video_data = generate_video_stream(video_name)
 
     if video_data:
@@ -76,5 +78,6 @@ def stream_video(video_name):
         # Start background store-to-redis thread
         threading.Thread(target=store_video_in_redis, args=(video_name,)).start()
         #safe_video_name = urllib.parse.unquote(video_name)
-        #print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
-        return render_template("watch.html", video_url=f"{NGINX_URL}{video_name}")
+        print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
+        return redirect(f"{NGINX_URL}{safe_video_name}")
+        
