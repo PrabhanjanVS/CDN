@@ -20,7 +20,7 @@ nginx:
     type: NodePort
     port: 80
     targetPort: 80
-    nodePort: 30080
+    nodePort: 30084
     
   # Nginx configuration
   config: |
@@ -86,7 +86,6 @@ flask:
     args:
       - |
         echo "127.0.0.1 localhost" >> /etc/hosts &&
-        apk add socat &&
         socat TCP-LISTEN:6379,fork,reuseaddr TCP:{{ .Release.Name }}-redis-service:6379 &
     resources: {}
   
@@ -95,7 +94,7 @@ flask:
     type: NodePort
     port: 5000
     targetPort: 5000
-    nodePort: 30500
+    nodePort: 30503
   
   # Environment variables
   env:

@@ -2,7 +2,7 @@
 FROM python:3.11-alpine
 
 # Install dependencies
-RUN apk add --no-cache nginx bash
+RUN apk add --no-cache nginx bash socat
 
 # Set working directory
 WORKDIR /app
@@ -25,4 +25,4 @@ RUN mkdir -p /var/cache/nginx/video_cache && chmod -R 777 /var/cache/nginx/video
 EXPOSE 5000 8081
 
 # Start Flask and Nginx
-CMD ["sh", "-c", "python /app/app.py & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", " python /app/app.py & nginx -g 'daemon off;'"]
