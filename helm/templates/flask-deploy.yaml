@@ -1,5 +1,4 @@
 ---
-# Flask HLS App Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,28 +13,27 @@ spec:
         app: flask-hls-app
     spec:
       containers:
-      - name: flask
-        image: prabhanjan953/flask-hls-app:latest
-        command: ['sh', '-c']
-        args:
-          - |
-            echo "127.0.0.1 localhost" >> /etc/hosts &&
-            apk add socat &&
-#           socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
-            socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
-#            python /app/app.py
-        ports:
-        - containerPort: 5000
-        env:
-        - name: NGINX_URL
-          value: "http://localhost:8081/videos/"
-        - name: REDIS_HOST
-          value: "redis;"  # Using socat-forwarded Redis
-        - name: VIDEO_SERVER_HOST
-          value: "127.0.0.1"  # Using socat-forwarded NGINX
+        - name: flask
+          image: prabhanjan953/flask-hls-app:1.0.1
+          command:
+            - sh
+            - -c
+          args:
+            - |
+              echo "127.0.0.1 localhost" >> /etc/hosts &&
+              apk add socat &&
+              socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NGINX_URL
+              value: http://localhost:8081/videos/
+            - name: REDIS_HOST
+              value: redis;
+            - name: VIDEO_SERVER_HOST
+              value: 127.0.0.1
 
 ---
-# Flask Service
 apiVersion: v1
 kind: Service
 metadata:
