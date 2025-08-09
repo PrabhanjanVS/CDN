@@ -19,15 +19,18 @@ spec:
         command: ['sh', '-c']
         args:
           - |
-            echo "127.0.0.1 host.docker.internal" >> /etc/hosts &&
-            socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
+            echo "127.0.0.1 localhost" >> /etc/hosts &&
+            apk add socat &&
+#           socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
             socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
-            python /app/app.py
+#            python /app/app.py
         ports:
         - containerPort: 5000
         env:
+        - name: NGINX_URL
+          value: "http://localhost:8081/videos/"
         - name: REDIS_HOST
-          value: "127.0.0.1"  # Using socat-forwarded Redis
+          value: "redis;"  # Using socat-forwarded Redis
         - name: VIDEO_SERVER_HOST
           value: "127.0.0.1"  # Using socat-forwarded NGINX
 

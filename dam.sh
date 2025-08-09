@@ -12,11 +12,11 @@ spec:
     image: nginx:alpine  # Replace with your actual app image
     volumeMounts:
     - name: nginx-storage
-      mountPath: /videos
+      mountPath: /usr/share/nginx/html
   volumes:
   - name: nginx-storage
     persistentVolumeClaim:
       claimName: nginx-storage
 EOF
 
-kubectl cp BigBuckBunny.mp4 video-uploader:/videos/example.mp4
+kubectl cp BigBuckBunny.mp4 video-uploader:/usr/share/nginx/html/example.mp4

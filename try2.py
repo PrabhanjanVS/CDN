@@ -10,7 +10,7 @@ from flask import redirect
 NGINX_URL = "http://localhost:8081/videos/"
 
 redis_client = redis.StrictRedis(
-    host="host.docker.internal",
+    host="localhost",
     port=6379,
     db=0,
     username="default",

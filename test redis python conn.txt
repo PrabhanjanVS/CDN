@@ -1,0 +1,24 @@
+import redis
+
+r = redis.StrictRedis(
+    host="localhost",  # Your Redis server address
+    port=6379,
+    db=0,
+    username="default",
+    password="user",
+    decode_responses=False  # Binary chunks
+)
+
+# Test connection
+try:
+    r.ping()
+    print("✅ Redis connection successful!")
+    
+    # Push test data
+    r.set("python_test", "data_from_pod")
+    
+    # Retrieve data
+    print(f"📦 Test value: {r.get('python_test')}")
+    
+except redis.ConnectionError as e:
+    print(f"❌ Connection failed: {e}")

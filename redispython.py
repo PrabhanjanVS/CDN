@@ -9,7 +9,7 @@ CHUNK_SIZE = 1024 * 1024  # 1MB
 
 # Redis client setup
 redis_client = redis.StrictRedis(
-    host="host.docker.internal",  # Your Redis server address
+    host="localhost",  # Your Redis server address
     port=6379,
     db=0,
     username="default",
