@@ -16,7 +16,7 @@ services:
 
   flask-hls-app:
     build: .
-    image: flask-hls-app4:latest
+    image: flask-hls-app:latest
     container_name: flask-hls-app
     ports:
       - "5000:5000"
