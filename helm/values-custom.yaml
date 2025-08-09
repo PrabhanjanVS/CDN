@@ -1,0 +1,104 @@
+nginx:
+  enabled: true
+  
+  # Storage configuration
+  storage:
+    enabled: true
+    size: 1Gi
+    accessModes: ReadWriteOnce
+    
+  # Deployment configuration
+  deployment:
+    image:
+      repository: nginx
+      tag: alpine
+      pullPolicy: IfNotPresent
+    replicaCount: 1
+    
+  # Service configuration
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+    
+  # Nginx configuration
+  config: |
+    server {
+      listen 80;
+      server_name localhost;
+      location / {
+        root /usr/share/nginx/html;
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_format html;
+        autoindex_localtime on;
+        types {
+          video/mp4 mp4;
+          video/webm webm;
+        }
+      }
+    }
+
+# Redis Configuration
+redis:
+  enabled: true
+  
+  # Deployment configuration
+  deployment:
+    image:
+      repository: redis
+      tag: latest
+    replicaCount: 1
+    resources:
+      limits:
+        memory: "3Gi"
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 6379
+    targetPort: 6379
+  
+  # Redis configuration
+  config:
+    appendonly: "no"
+    save: '""'
+    maxmemory: "3gb"
+    maxmemory_policy: "allkeys-lru"
+  
+  # Redis authentication
+  auth:
+    enabled: true
+    user: "default"
+    password: "user"  # In production, use --set redis.auth.password=$REDIS_PWD
+
+flask:
+  enabled: true
+  
+  # Deployment configuration
+  deployment:
+    image:
+      repository: prabhanjan953/flask-hls-app
+      tag: latest
+    replicaCount: 1
+    command: ['sh', '-c']
+    args:
+      - |
+        echo "127.0.0.1 localhost" >> /etc/hosts &&
+        apk add socat &&
+        socat TCP-LISTEN:6379,fork,reuseaddr TCP:{{ .Release.Name }}-redis-service:6379 &
+    resources: {}
+  
+  # Service configuration
+  service:
+    type: NodePort
+    port: 5000
+    targetPort: 5000
+    nodePort: 30500
+  
+  # Environment variables
+  env:
+    NGINX_URL: "http://localhost:8081/videos/"
+    REDIS_HOST: "{{ .Release.Name }}-redis-service"
+    VIDEO_SERVER_HOST: "127.0.0.1"

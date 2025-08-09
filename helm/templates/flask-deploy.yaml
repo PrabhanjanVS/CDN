@@ -1,51 +1,60 @@
+{{- if .Values.flask.enabled }}
 ---
-# Flask HLS App Deployment
+# Flask Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-hls-app
+  name: {{ .Release.Name }}-flask-app
+  labels:
+    app: {{ .Release.Name }}-flask-app
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 spec:
+  replicas: {{ .Values.flask.deployment.replicaCount }}
   selector:
     matchLabels:
-      app: flask-hls-app
+      app: {{ .Release.Name }}-flask-app
   template:
     metadata:
       labels:
-        app: flask-hls-app
+        app: {{ .Release.Name }}-flask-app
     spec:
       containers:
       - name: flask
-        image: prabhanjan953/flask-hls-app:latest
-        command: ['sh', '-c']
-        args:
-          - |
-            echo "127.0.0.1 localhost" >> /etc/hosts &&
-            apk add socat &&
-#           socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
-            socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
-#            python /app/app.py
+        image: "{{ .Values.flask.deployment.image.repository }}:{{ .Values.flask.deployment.image.tag }}"
+        command: {{ .Values.flask.deployment.command | toYaml | nindent 10 }}
+        args: 
+        - {{ .Values.flask.deployment.args[0] | quote }}
         ports:
-        - containerPort: 5000
+        - containerPort: {{ .Values.flask.service.port }}
         env:
-        - name: NGINX_URL
-          value: "http://localhost:8081/videos/"
-        - name: REDIS_HOST
-          value: "redis;"  # Using socat-forwarded Redis
-        - name: VIDEO_SERVER_HOST
-          value: "127.0.0.1"  # Using socat-forwarded NGINX
-
+        {{- range $key, $value := .Values.flask.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.flask.deployment.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 ---
 # Flask Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-hls-app
+  name: {{ .Release.Name }}-flask-service
+  labels:
+    app: {{ .Release.Name }}-flask-app
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 spec:
-  type: NodePort
-  selector:
-    app: flask-hls-app
+  type: {{ .Values.flask.service.type }}
   ports:
     - protocol: TCP
-      port: 5000
-      targetPort: 5000
-      nodePort: 30500
+      port: {{ .Values.flask.service.port }}
+      targetPort: {{ .Values.flask.service.targetPort }}
+      {{- if eq .Values.flask.service.type "NodePort" }}
+      nodePort: {{ .Values.flask.service.nodePort }}
+      {{- end }}
+  selector:
+    app: {{ .Release.Name }}-flask-app
+{{- end }}

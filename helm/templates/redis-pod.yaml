@@ -1,75 +1,95 @@
+{{- if .Values.redis.enabled }}
 ---
 # Redis ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: redis-config
+  name: {{ .Release.Name }}-redis-config
+  labels:
+    app: {{ .Release.Name }}-redis
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 data:
   redis.conf: |
-    appendonly no
-    save ""
-    maxmemory 3gb
-    maxmemory-policy allkeys-lru
-
+    appendonly {{ .Values.redis.config.appendonly }}
+    save {{ .Values.redis.config.save }}
+    maxmemory {{ .Values.redis.config.maxmemory }}
+    maxmemory-policy {{ .Values.redis.config.maxmemory_policy }}
 ---
 # Redis Secrets
 apiVersion: v1
 kind: Secret
 metadata:
-  name: redis-secrets
+  name: {{ .Release.Name }}-redis-secrets
+  labels:
+    app: {{ .Release.Name }}-redis
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 type: Opaque
-stringData:  # Using stringData to avoid manual base64 encoding
-  REDIS_USER: default
-  REDIS_PASSWORD: user
-
+stringData:
+  {{- if .Values.redis.auth.enabled }}
+  REDIS_USER: {{ .Values.redis.auth.user | quote }}
+  REDIS_PASSWORD: {{ .Values.redis.auth.password | quote }}
+  {{- end }}
 ---
 # Redis Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: {{ .Release.Name }}-redis
   labels:
-    app: redis
+    app: {{ .Release.Name }}-redis
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.redis.deployment.replicaCount }}
   selector:
     matchLabels:
-      app: redis
+      app: {{ .Release.Name }}-redis
   template:
     metadata:
       labels:
-        app: redis
+        app: {{ .Release.Name }}-redis
     spec:
       containers:
       - name: redis
-        image: redis:latest
+        image: "{{ .Values.redis.deployment.image.repository }}:{{ .Values.redis.deployment.image.tag }}"
         ports:
-        - containerPort: 6379
+        - containerPort: {{ .Values.redis.service.port }}
         volumeMounts:
         - name: config
           mountPath: /usr/local/etc/redis/redis.conf
           subPath: redis.conf
+        {{- if .Values.redis.auth.enabled }}
         envFrom:
         - secretRef:
-            name: redis-secrets
+            name: {{ .Release.Name }}-redis-secrets
+        {{- end }}
         command: ["redis-server"]
-        args: ["/usr/local/etc/redis/redis.conf"]  # Load custom config
+        args: ["/usr/local/etc/redis/redis.conf"]
+        resources:
+          limits:
+            memory: {{ .Values.redis.deployment.resources.limits.memory }}
       volumes:
       - name: config
         configMap:
-          name: redis-config
-
+          name: {{ .Release.Name }}-redis-config
 ---
 # Redis Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: {{ .Release.Name }}-redis-service
+  labels:
+    app: {{ .Release.Name }}-redis
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
 spec:
-  type: ClusterIP
-  selector:
-    app: redis
+  type: {{ .Values.redis.service.type }}
   ports:
     - protocol: TCP
-      port: 6379
-      targetPort: 6379
+      port: {{ .Values.redis.service.port }}
+      targetPort: {{ .Values.redis.service.targetPort }}
+  selector:
+    app: {{ .Release.Name }}-redis
+{{- end }}
