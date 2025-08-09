@@ -2,13 +2,13 @@ apiVersion: v1
 entries:
   directdeploy:
   - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2025-08-09T13:00:37.1988183+05:30"
+    appVersion: 1.0.0
+    created: "2025-08-09T13:15:40.4113126+05:30"
     description: A Helm chart for Kubernetes
-    digest: 9af2a2babcd1f37440dcbc65395d11880f9e86be24ad1ae60326fb38de57e209
+    digest: 85b6c4c902ff7545acca5bce8d7b94d1d57a18cf7d4c6aa12f6abdeb95104907
     name: directdeploy
     type: application
     urls:
-    - https://prabhanjanvs.github.io/CDN/directdeploy/charts/directdeploy-0.1.0.tgz
-    version: 0.1.0
-generated: "2025-08-09T13:00:37.1983181+05:30"
+    - directdeploy-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-08-09T13:15:40.4098117+05:30"
