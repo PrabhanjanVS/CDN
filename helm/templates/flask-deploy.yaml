@@ -1,59 +1,42 @@
 {{- if .Values.flask.enabled }}
 ---
-# Flask Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-flask-app
-  labels:
-    app: {{ .Release.Name }}-flask-app
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    release: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.flask.deployment.replicaCount }}
-  selector:
-    matchLabels:
-      app: {{ .Release.Name }}-flask-app
   template:
-    metadata:
-      labels:
-        app: {{ .Release.Name }}-flask-app
     spec:
       containers:
       - name: flask
-        image: "{{ .Values.flask.deployment.image.repository }}:{{ .Values.flask.deployment.image.tag }}"
-        command: {{ .Values.flask.deployment.command | toYaml | nindent 10 }}
-        args: 
-        - {{ .Values.flask.deployment.args[0] | quote }}
+        image: {{ .Values.flask.image | default "prabhanjan953/flask-hls-app:latest" }}
+        command:
+        - sh
+        - -c
+        args:
+        - |
+          echo "127.0.0.1 localhost" >> /etc/hosts &&
+          apk add socat &&
+          socat TCP-LISTEN:6379,fork,reuseaddr TCP:{{ .Release.Name }}-redis-service:6379 &
         ports:
-        - containerPort: {{ .Values.flask.service.port }}
+        - containerPort: 5000
         env:
-        {{- range $key, $value := .Values.flask.env }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- with .Values.flask.deployment.resources }}
-        resources:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
+        - name: NGINX_URL
+          value: {{ .Values.flask.nginxUrl | quote }}
+        - name: REDIS_HOST
+          value: {{ .Release.Name }}-redis-service
 ---
-# Flask Service
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-flask-service
-  labels:
-    app: {{ .Release.Name }}-flask-app
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    release: {{ .Release.Name }}
 spec:
-  type: {{ .Values.flask.service.type }}
+  type: {{ .Values.flask.service.type | default "NodePort" }}
   ports:
-    - protocol: TCP
-      port: {{ .Values.flask.service.port }}
-      targetPort: {{ .Values.flask.service.targetPort }}
-      {{- if eq .Values.flask.service.type "NodePort" }}
-      nodePort: {{ .Values.flask.service.nodePort }}
+    - port: {{ .Values.flask.service.port | default 5000 }}
+      targetPort: {{ .Values.flask.service.targetPort | default 5000 }}
+      {{- if eq (.Values.flask.service.type | default "NodePort") "NodePort" }}
+      nodePort: {{ .Values.flask.service.nodePort | default 30500 }}
       {{- end }}
   selector:
     app: {{ .Release.Name }}-flask-app

@@ -21,7 +21,6 @@ spec:
           - |
             echo "127.0.0.1 localhost" >> /etc/hosts &&
             apk add socat &&
-#           socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 &
             socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 &
 #            python /app/app.py
         ports:
@@ -49,3 +48,5 @@ spec:
       port: 5000
       targetPort: 5000
       nodePort: 30500
+
+#           socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80 & lit error
