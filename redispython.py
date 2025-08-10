@@ -5,7 +5,7 @@ import re
 import os  # For environment variables
 
 # Get environment variables with fallback defaults
-NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/videos/')
+NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/')
 REDIS_HOST = 'redis'  # or '10.107.191.117' if testing with IP
 REDIS_PORT = 6379
 REDIS_USER = 'default'

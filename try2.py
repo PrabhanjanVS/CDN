@@ -5,7 +5,7 @@ from flask import Response, render_template
 import threading
 from redispython import store_video_in_redis
 from flask import redirect
-import os  # For environment variables
+import os  
 
 # Get environment variables with fallback defaults
 NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/')
@@ -74,7 +74,7 @@ def generate_video_stream(video_name):
     video_chunks = get_video_chunks(video_name)
     return b"".join(video_chunks) if video_chunks else None
 
-# ✅ This is the callable function you import in app.py
+#  This is the callable function you import in app.py
 def stream_video(video_name):
     safe_video_name = urllib.parse.unquote(urllib.parse.unquote(video_name))
     #safe_video_name = urllib.parse.unquote(video_name)
@@ -87,5 +87,21 @@ def stream_video(video_name):
         threading.Thread(target=store_video_in_redis, args=(video_name,)).start()
         #safe_video_name = urllib.parse.unquote(video_name)
         print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
-        #return render_template("watch.html", video_url=f"{NGINX_URL}{safe_video_name}")
+        return render_template("watch.html", video_url=f"/stream/{video_name}")
         return redirect(f"{NGINX_URL}{safe_video_name}")
+
+
+def stream(video_name):
+    # Internal cluster URL (never exposed to client)
+    internal_url = f"http://nginx-server:80/{video_name}"
+    
+    # Stream with chunked encoding
+    req = requests.get(internal_url, stream=True)
+    return Response(
+        req.iter_content(chunk_size=1024*1024),  # 1MB chunks
+        content_type=req.headers['Content-Type'],
+        headers={
+            'X-Proxy': 'Flask',  # Debug header
+            'Cache-Control': 'no-cache'
+        }
+    )

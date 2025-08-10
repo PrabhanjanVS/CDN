@@ -28,21 +28,5 @@ def watch(video_name):
     #return render_template("watch.html", video_url=f"/stream/{video_name}")
     return stream_video(video_name)
 
-@app.route("/stream/<video_name>")
-def stream(video_name):
-    # Internal cluster URL (never exposed to client)
-    internal_url = f"http://nginx-server:80/{video_name}"
-    
-    # Stream with chunked encoding
-    req = requests.get(internal_url, stream=True)
-    return Response(
-        req.iter_content(chunk_size=1024*1024),  # 1MB chunks
-        content_type=req.headers['Content-Type'],
-        headers={
-            'X-Proxy': 'Flask',  # Debug header
-            'Cache-Control': 'no-cache'
-        }
-    )
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
