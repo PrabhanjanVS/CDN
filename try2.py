@@ -8,8 +8,8 @@ from flask import redirect
 import os  # For environment variables
 
 # Get environment variables with fallback defaults
-NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-service:80/videos/')
-REDIS_HOST = os.getenv('REDIS_HOST', 'redis-service')  # Kubernetes service name
+NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/videos/')
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')  # Kubernetes service name
 REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))  # Convert to int
 REDIS_USER = os.getenv('REDIS_USER', 'default')
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'user')
@@ -87,4 +87,5 @@ def stream_video(video_name):
         threading.Thread(target=store_video_in_redis, args=(video_name,)).start()
         #safe_video_name = urllib.parse.unquote(video_name)
         print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
-        return redirect(f"{NGINX_URL}{safe_video_name}")
+        return render_template("watch.html", video_url=f"{NGINX_URL}{safe_video_name}")
+        #return redirect(f"{NGINX_URL}{safe_video_name}")

@@ -2,9 +2,10 @@ from flask import Flask, render_template, Response
 import requests
 from bs4 import BeautifulSoup
 import os
+from try2 import stream_video
 
 app = Flask(__name__)
-NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-service.default.svc.cluster.local:80/')
+NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/')
 @app.route("/")
 def index():
     try:
@@ -24,7 +25,8 @@ def index():
 @app.route("/watch/<video_name>")
 def watch(video_name):
     # Use the streaming endpoint URL
-    return render_template("watch.html", video_url=f"/stream/{video_name}")
+    #return render_template("watch.html", video_url=f"/stream/{video_name}")
+    return stream_video(video_name)
 
 @app.route("/stream/<video_name>")
 def stream(video_name):
