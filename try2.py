@@ -87,8 +87,9 @@ def stream_video(video_name):
         threading.Thread(target=store_video_in_redis, args=(video_name,)).start()
         #safe_video_name = urllib.parse.unquote(video_name)
         print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
-        return render_template("watch.html", video_url=f"/stream/{video_name}")
+        #return render_template("watch.html", video_url=f"/stream/{video_name}")
         #return redirect(f"{NGINX_URL}{safe_video_name}")
+        return None
 
 
 def stream(video_name):
