@@ -6,10 +6,10 @@ import os  # For environment variables
 
 # Get environment variables with fallback defaults
 NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/videos/')
-REDIS_HOST = os.getenv('REDIS_HOST', 'redis')  # Kubernetes service name
-REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))  # Convert to int
-REDIS_USER = os.getenv('REDIS_USER', 'default')
-REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'user')
+REDIS_HOST = 'redis'  # or '10.107.191.117' if testing with IP
+REDIS_PORT = 6379
+REDIS_USER = 'default'
+REDIS_PASSWORD = 'user'
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
