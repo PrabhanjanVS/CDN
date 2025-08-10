@@ -1,4 +1,3 @@
-# redisplayer.py
 import re
 import urllib.parse
 import redis
@@ -6,16 +5,25 @@ from flask import Response, render_template
 import threading
 from redispython import store_video_in_redis
 from flask import redirect
+import os  # For environment variables
 
-NGINX_URL = "http://localhost:8081/videos/"
+# Get environment variables with fallback defaults
+NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-service:80/videos/')
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis-service')  # Kubernetes service name
+REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))  # Convert to int
+REDIS_USER = os.getenv('REDIS_USER', 'default')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'user')
 
+CHUNK_SIZE = 1024 * 1024  # 1MB
+
+# Redis client setup with environment variables
 redis_client = redis.StrictRedis(
-    host="localhost",
-    port=6379,
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     db=0,
-    username="default",
-    password="user",
-    decode_responses=False
+    username=REDIS_USER,
+    password=REDIS_PASSWORD,
+    decode_responses=False  # Binary chunks
 )
 
 def slugify(name):
@@ -80,4 +88,3 @@ def stream_video(video_name):
         #safe_video_name = urllib.parse.unquote(video_name)
         print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
         return redirect(f"{NGINX_URL}{safe_video_name}")
-        

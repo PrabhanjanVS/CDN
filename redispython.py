@@ -2,20 +2,27 @@ import redis
 import requests
 import urllib
 import re
+import os  # For environment variables
 
-# Constants
-NGINX_URL = "http://localhost:8081/videos/"
+# Get environment variables with fallback defaults
+NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-service:80/videos/')
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis-service')  # Kubernetes service name
+REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))  # Convert to int
+REDIS_USER = os.getenv('REDIS_USER', 'default')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'user')
+
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
-# Redis client setup
+# Redis client setup with environment variables
 redis_client = redis.StrictRedis(
-    host="localhost",  # Your Redis server address
-    port=6379,
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     db=0,
-    username="default",
-    password="user",
+    username=REDIS_USER,
+    password=REDIS_PASSWORD,
     decode_responses=False  # Binary chunks
 )
+
 
 def slugify(name):
     base, ext = name.rsplit(".", 1)

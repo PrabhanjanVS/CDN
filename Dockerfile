@@ -25,4 +25,5 @@ RUN mkdir -p /var/cache/nginx/video_cache && chmod -R 777 /var/cache/nginx/video
 EXPOSE 5000 8081
 
 # Start Flask and Nginx
-CMD ["sh", "-c", " python /app/app.py & nginx -g 'daemon off;'"]
+#CMD ["sh", "-c", " python /app/app.py & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "python /app/app.py & nginx -g 'daemon off;' & socat TCP-LISTEN:6379,fork,reuseaddr TCP:redis:6379 & socat TCP-LISTEN:8080,fork,reuseaddr TCP:nginx-server:80"]
