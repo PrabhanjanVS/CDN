@@ -15,7 +15,8 @@ A lightweight CDN implementation with three core components:
 - kubectl configured
 
 ## Deployment
-
+## Demo
+[![Watch the Demo](./full_demo.gif)](./demos.mp4)
 ### Helm Installation (Recommended)
 ```bash
 # Add Helm repository
@@ -92,4 +93,5 @@ graph TD
     
 3.  Implement horizontal pod autoscaling
     
+
 4.  Add monitoring (Prometheus metrics)
