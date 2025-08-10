@@ -88,7 +88,7 @@ def stream_video(video_name):
         #safe_video_name = urllib.parse.unquote(video_name)
         print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
         return render_template("watch.html", video_url=f"/stream/{video_name}")
-        return redirect(f"{NGINX_URL}{safe_video_name}")
+        #return redirect(f"{NGINX_URL}{safe_video_name}")
 
 
 def stream(video_name):
