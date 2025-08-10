@@ -24,7 +24,7 @@ helm repo add cdn https://prabhanjanvs.github.io/CDN/
 helm repo update
 
 # Install the chart
-helm install cdn-deployment cdn/directdeploy --version 1.0.0
+helm install cdn-deployment cdn/directdeploy --version 0.1.2
 
 ### Manual Video Upload
 
@@ -95,3 +95,4 @@ graph TD
     
 
 4.  Add monitoring (Prometheus metrics)
+
