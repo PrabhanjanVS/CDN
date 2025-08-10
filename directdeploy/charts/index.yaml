@@ -3,7 +3,17 @@ entries:
   directdeploy:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-08-10T10:58:18.1340126+05:30"
+    created: "2025-08-10T11:53:06.6713493+05:30"
+    description: A Helm chart for Kubernetes
+    digest: fae3c6c693de4f633305b2dcced63cd0ebb9afec7447b33af178a84d866c82d5
+    name: directdeploy
+    type: application
+    urls:
+    - directdeploy-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-08-10T11:53:06.6713493+05:30"
     description: A Helm chart for Kubernetes
     digest: f9ed3e9682aa48e8ba5173c40ff4ec2bb9756b98a7f9864b0eabf8a0d47e7262
     name: directdeploy
@@ -13,7 +23,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-08-10T10:58:18.1325169+05:30"
+    created: "2025-08-10T11:53:06.6713493+05:30"
     description: A Helm chart for Kubernetes
     digest: a94e1fcbd21a35d17403ba5b27a8a8c4a6c0b063842cc148ad81de8eb0dab754
     name: directdeploy
@@ -21,4 +31,4 @@ entries:
     urls:
     - directdeploy-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-10T10:58:18.1305184+05:30"
+generated: "2025-08-10T11:53:06.6713493+05:30"
