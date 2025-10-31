@@ -20,7 +20,7 @@ A lightweight CDN implementation with three core components:
 ### Helm Installation (Recommended)
 ```bash
 # Add Helm repository
-helm repo add cdn https://prabhanjanvs.github.io/CDN/
+helm repo add cdn https://prabhanjanvs.github.io/CDN/directdeploy/charts
 helm repo update
 
 # Install the chart
@@ -95,4 +95,5 @@ graph TD
     
 
 4.  Add monitoring (Prometheus metrics)
+
 
