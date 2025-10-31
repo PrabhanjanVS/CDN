@@ -4,12 +4,18 @@ import xml.etree.ElementTree as ET
 import os
 from try2 import stream_video
 
+REDIS_HOST = os.environ['REDIS_HOST']
+REDIS_PORT = int(os.environ['REDIS_PORT'])
+REDIS_USER = os.environ['REDIS_USER']
+REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
+VIDEO_SERVER_HOST = os.environ['VIDEO_SERVER_HOST']
+
 app = Flask(__name__)
 
 @app.route('/')
 def list_s3_files():
     """List available videos from S3"""
-    s3_api = "http://storage-video-prab.s3.amazonaws.com/"
+    s3_api = VIDEO_SERVER_HOST
     try:
         response = requests.get(s3_api)
         response.raise_for_status()
@@ -73,7 +79,7 @@ def watch(video_name):
 @app.route("/stream/<path:video_name>")
 def stream(video_name):
     """Stream video directly from S3"""
-    internal_url = f"http://storage-video-prab.s3.amazonaws.com/{video_name}"
+    internal_url = f"{VIDEO_SERVER_HOST}{video_name}"
     
     try:
         req = requests.get(internal_url, stream=True, timeout=30)

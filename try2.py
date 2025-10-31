@@ -1,4 +1,5 @@
 import re
+import os
 import urllib.parse
 import redis
 from flask import Response, render_template
@@ -6,10 +7,11 @@ import threading
 from redispython import store_video_in_redis
 
 # Get environment variables with fallback defaults
-REDIS_HOST = 'redis-cache'  # Change to 'redis' if using Docker
-REDIS_PORT = 6379
-REDIS_USER = 'default'
-REDIS_PASSWORD = 'user'  # Set to your password if needed
+VIDEO_SERVER_HOST = os.environ['VIDEO_SERVER_HOST']
+REDIS_HOST = os.environ['REDIS_HOST']
+REDIS_PORT = int(os.environ['REDIS_PORT'])
+REDIS_USER = os.environ['REDIS_USER']
+REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 

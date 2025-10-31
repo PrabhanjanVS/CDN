@@ -5,7 +5,7 @@ import re
 import os
 
 # Get environment variables with fallback defaults
-NGINX_URL = os.getenv('NGINX_URL', 'http://storage-video-prab.s3.amazonaws.com/')
+VIDEO_SERVER_HOST = os.environ['VIDEO_SERVER_HOST']
 REDIS_HOST = 'redis-cache'  # Change to 'redis' if using Docker
 REDIS_PORT = 6379
 REDIS_USER = 'default'
@@ -42,7 +42,7 @@ def store_video_in_redis(video_name):
     safe_video_name = urllib.parse.unquote(video_name)
     clean_name = slugify(safe_video_name)
 
-    url = f"{NGINX_URL}{safe_video_name}"
+    url = f"{VIDEO_SERVER_HOST}{safe_video_name}"
     print(f"[+] Starting to store video: {url}")
 
     try:
