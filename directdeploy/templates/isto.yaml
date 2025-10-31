@@ -1,0 +1,54 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: video-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: flask-vs
+spec:
+  hosts:
+  - "*"  # Match ANY host (IP or otherwise)
+  gateways:
+  - video-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api
+    route:
+    - destination:
+        host: flask-hls-app
+        port:
+          number: 5000
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: nginx-vs
+spec:
+  hosts:
+  - "*"  # Match ANY host
+  gateways:
+  - video-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /videos
+    route:
+    - destination:
+        host: nginx-server
+        port:
+          number: 80
+    timeout: 300s
