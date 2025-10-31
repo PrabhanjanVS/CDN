@@ -4,27 +4,32 @@ import redis
 from flask import Response, render_template
 import threading
 from redispython import store_video_in_redis
-from flask import redirect
-import os  
 
 # Get environment variables with fallback defaults
-NGINX_URL = os.getenv('NGINX_URL', 'http://nginx-server:80/')
-REDIS_HOST = 'redis'  # or '10.107.191.117' if testing with IP
+REDIS_HOST = 'redis'  # Change to 'redis' if using Docker
 REDIS_PORT = 6379
 REDIS_USER = 'default'
-REDIS_PASSWORD = 'user'
+REDIS_PASSWORD = None  # Set to your password if needed
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
-# Redis client setup with environment variables
-redis_client = redis.StrictRedis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    db=0,
-    username=REDIS_USER,
-    password=REDIS_PASSWORD,
-    decode_responses=False  # Binary chunks
-)
+# Redis client setup with error handling
+try:
+    redis_client = redis.StrictRedis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=0,
+        username=REDIS_USER,
+        password=REDIS_PASSWORD,
+        decode_responses=False,  # Binary chunks
+        socket_connect_timeout=5
+    )
+    # Test connection
+    redis_client.ping()
+    print("[✓] Redis connection successful")
+except redis.ConnectionError:
+    print("[!] Redis connection failed - continuing without Redis")
+    redis_client = None
 
 def slugify(name):
     base, ext = name.rsplit(".", 1)
@@ -32,6 +37,9 @@ def slugify(name):
     return f"{base}.{ext}"
 
 def is_video_fully_stored(slug):
+    if not redis_client:
+        return False
+        
     meta_key = f"video:{slug}:meta"
     total_chunks = redis_client.hget(meta_key, "total_chunks")
 
@@ -49,11 +57,14 @@ def is_video_fully_stored(slug):
     return actual_chunks == total_chunks
 
 def get_video_chunks(video_name):
+    if not redis_client:
+        return []
+        
     clean_name = slugify(urllib.parse.unquote(video_name))
     chunk_hash_key = f"video:{clean_name}:chunks"
     
     chunk_keys = redis_client.hkeys(chunk_hash_key)
-    sorted_chunk_keys = sorted(chunk_keys, key=lambda x: int(x))
+    sorted_chunk_keys = sorted(chunk_keys, key=lambda x: int(x.decode() if isinstance(x, bytes) else x))
 
     video_chunks = []
     for chunk_key in sorted_chunk_keys:
@@ -66,43 +77,29 @@ def get_video_chunks(video_name):
     return video_chunks
 
 def generate_video_stream(video_name):
+    if not redis_client:
+        return None
+        
     clean_name = slugify(urllib.parse.unquote(video_name))
 
     if not is_video_fully_stored(clean_name):
-        return None #render_template("watch.html", video_url=f"{NGINX_URL}{video_name}")
+        return None
 
     video_chunks = get_video_chunks(video_name)
     return b"".join(video_chunks) if video_chunks else None
 
-#  This is the callable function you import in app.py
 def stream_video(video_name):
-    safe_video_name = urllib.parse.unquote(urllib.parse.unquote(video_name))
-    #safe_video_name = urllib.parse.unquote(video_name)
+    safe_video_name = urllib.parse.unquote(video_name)
+    
+    # Check if video is in Redis
     video_data = generate_video_stream(video_name)
 
     if video_data:
+        # Video found in Redis - stream it directly
         return Response(video_data, content_type="video/mp4")
     else:
-        # Start background store-to-redis thread
-        threading.Thread(target=store_video_in_redis, args=(video_name,)).start()
-        #safe_video_name = urllib.parse.unquote(video_name)
-        print(f"[DEBUG] Final video URL: {NGINX_URL}{safe_video_name}")  # Add this
-        #return render_template("watch.html", video_url=f"/stream/{video_name}")
-        #return redirect(f"{NGINX_URL}{safe_video_name}")
+        # Video not in Redis - start background storage and return HTML page
+        if redis_client:  # Only store in Redis if Redis is available
+            threading.Thread(target=store_video_in_redis, args=(video_name,), daemon=True).start()
+        # Return None to indicate video not in Redis
         return None
-
-
-def stream(video_name):
-    # Internal cluster URL (never exposed to client)
-    internal_url = f"http://nginx-server:80/{video_name}"
-    
-    # Stream with chunked encoding
-    req = requests.get(internal_url, stream=True)
-    return Response(
-        req.iter_content(chunk_size=1024*1024),  # 1MB chunks
-        content_type=req.headers['Content-Type'],
-        headers={
-            'X-Proxy': 'Flask',  # Debug header
-            'Cache-Control': 'no-cache'
-        }
-    )
