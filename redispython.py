@@ -6,10 +6,10 @@ import os
 
 # Get environment variables with fallback defaults
 NGINX_URL = os.getenv('NGINX_URL', 'http://storage-video-prab.s3.amazonaws.com/')
-REDIS_HOST = 'redis'  # Change to 'redis' if using Docker
+REDIS_HOST = 'redis-cache'  # Change to 'redis' if using Docker
 REDIS_PORT = 6379
 REDIS_USER = 'default'
-REDIS_PASSWORD = None  # Set to your password if needed
+REDIS_PASSWORD = 'user'# Set to your password if needed
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
