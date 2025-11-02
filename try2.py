@@ -1,4 +1,5 @@
 import re
+import base64
 import os
 import urllib.parse
 import redis
@@ -90,6 +91,7 @@ def generate_video_stream(video_name):
     video_chunks = get_video_chunks(video_name)
     return b"".join(video_chunks) if video_chunks else None
 
+
 def stream_video(video_name):
     safe_video_name = urllib.parse.unquote(video_name)
     
@@ -97,10 +99,16 @@ def stream_video(video_name):
     video_data = generate_video_stream(video_name)
 
     if video_data:
-        # Video found in Redis - stream it directly
-        return Response(video_data, content_type="video/mp4")
+        # Convert binary video data to base64 data URL
+        video_base64 = base64.b64encode(video_data).decode('utf-8')
+        video_data_url = f"data:video/mp4;base64,{video_base64}"
+        
+        return render_template('videos.html', 
+                            video_name=safe_video_name, 
+                            video_url=video_data_url,
+                            video_ready=True)
     else:
-        # Video not in Redis - start background storage and return HTML page
+        # Video not in Redis - start background storage
         if redis_client:  # Only store in Redis if Redis is available
             threading.Thread(target=store_video_in_redis, args=(video_name,), daemon=True).start()
         # Return None to indicate video not in Redis

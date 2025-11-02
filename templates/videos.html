@@ -1,14 +1,146 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Redis Video Player</title>
-  </head>
-  <body>
-    <h2>Available Redis Videos</h2>
-    <ul>
-      {% for video in videos %}
-      <li><a href="/watch/{{ video }}">{{ video }}</a></li>
-      {% endfor %}
-    </ul>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watch Video</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #553b3b;
+    }
+
+    .video-container {
+      background: rgb(151, 104, 104);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .loading-container,
+    .error-container {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="video-container">
+    <h1>Now Playing: <span id="video-title">{{ video_name }}</span></h1>
+
+    {% if video_ready and video_url %}
+    <div id="video-player">
+      <video controls autoplay>
+        <source src="{{ video_url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <p><em>Video loaded from cache</em></p>
+    </div>
+    {% else %}
+    <div id="loading-section" class="loading-container">
+      <div class="spinner"></div>
+      <h3>Processing Video...</h3>
+      <p>Your video is being prepared for streaming. This may take a few moments.</p>
+      <p id="progress-text">Initializing...</p>
+      <button onclick="checkVideoStatus()" class="btn">Check Status</button>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <a href="/" class="btn">Go Back to Home</a>
+  </div>
+
+  {% if not video_ready %}
+  <script>
+    const videoName = "{{ video_name }}";
+    let checkInterval;
+
+    function checkVideoStatus() {
+      fetch(`/api/video-status/${encodeURIComponent(videoName)}`)
+        .then(response => {
+          if (!response.ok) throw new Error('Network error');
+          return response.json();
+        })
+        .then(data => {
+          const progressText = document.getElementById('progress-text');
+
+          if (data.status === 'ready') {
+            // Video is ready, reload the page to show it
+            progressText.textContent = 'Video ready! Loading...';
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else if (data.status === 'processing') {
+            // Update progress
+            progressText.textContent = data.progress || 'Processing...';
+          } else if (data.status === 'error') {
+            progressText.textContent = 'Error: ' + (data.message || 'Unknown error');
+            clearInterval(checkInterval);
+          }
+        })
+        .catch(error => {
+          console.error('Error checking video status:', error);
+          document.getElementById('progress-text').textContent =
+            'Error checking status. Will retry...';
+        });
+    }
+
+    // Start checking status every 3 seconds
+    document.addEventListener('DOMContentLoaded', function () {
+      checkVideoStatus(); // Check immediately
+      checkInterval = setInterval(checkVideoStatus, 3000); // Then every 3 seconds
+    });
+  </script>
+  {% endif %}
+</body>
+
 </html>

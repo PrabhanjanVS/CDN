@@ -4,17 +4,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Watch Video</title>
+  <title>Watch {{ video_name }}</title>
 </head>
 
 <body>
-  <h1>Now Playing</h1>
-  <!-- watch.html -->
-  <video controls>
+  <h1>Now Playing: {{ video_name }}</h1>
+
+  {% if video_url %}
+  <video controls width="800">
     <source src="{{ video_url }}" type="video/mp4">
     Your browser does not support the video tag.
   </video>
-  <br />
+  {% else %}
+  <p>Video is processing... Please wait.</p>
+  <p>Status: <span id="status">Loading...</span></p>
+  <script>
+    function checkStatus() {
+      fetch('/api/video-status/{{ video_name|urlencode }}')
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === 'ready') {
+            window.location.reload();
+          }
+        });
+    }
+    setInterval(checkStatus, 3000);
+  </script>
+  {% endif %}
+
+  <br>
   <a href="/">Go Back</a>
 </body>
 
