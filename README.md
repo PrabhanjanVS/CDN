@@ -122,7 +122,7 @@ This repository contains Terraform and Kubernetes manifests to provision a VPC a
 * `kubectl` installed.
 * Optional: `aws` CLI if you manage an S3 bucket on AWS.
 * A service account JSON key (recommended) for Terraform to authenticate to GCP.
-
+* I did however have showed few of my project ids and s3 bucket links, which i will be deleting anyhow. So make and run your own resources.
 ### Enable required GCP APIs
 
 ```bash
@@ -326,7 +326,7 @@ kubectl get pods -w
 
 ## 5. Using S3 (AWS) vs GCS
 
-* You said you currently have an S3 bucket in the USA region and run the GKE cluster in `south-asia` region. If you plan to remove the S3 bucket later and use a common bucket, decide whether to use AWS S3 or Google Cloud Storage (GCS). Both work; change the `VIDEO_BUCKET_URL` accordingly.
+*  I have an S3 bucket in the USA region and run the GKE cluster in `south-asia` region. Plan to remove the S3 bucket later and use a common bucket. Both work; change the `VIDEO_BUCKET_URL` accordingly.
 
 * If you want to make it cross-cloud:
 
@@ -354,8 +354,6 @@ Also remove the service account key from where you stored it, if needed:
 ```bash
 rm ~/gcp-tf-demo-key.json
 ```
-
-If you created any AWS S3 bucket and want to remove it, use the AWS CLI or console to delete objects and bucket.
 
 ---
 
@@ -403,14 +401,10 @@ terraform destroy -var-file=../terraform.tfvars
 
 ---
 
-## Final notes
-
-* The attached `README` content shows the end-to-end flow for VPC and GKE using Terraform. Adjust variables and IAM bindings to follow your security model.
-* If you want, I can also generate example `main.tf` files for a simple VPC module and a basic GKE cluster Terraform configuration, or the `deployment.yaml` ready-to-edit file for your app. Tell me which one you'd like next.
-
 ---
 
 *Happy provisioning!*
+
 
 
 
