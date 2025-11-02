@@ -1,99 +1,3 @@
-
-# Content Delivery Network (CDN) Helm Deployment
-
-## Project Overview
-A lightweight CDN implementation with three core components:
-- **Video Storage Server** (Nginx pod with persistent storage)
-- **Cache Layer** (Redis pod)
-- **Frontend Service** (Flask app with Nginx proxy)
-
-> **Note**: This is a practice project that can be production-ready with additional security and scaling configurations.
-
-## Prerequisites
-- Kubernetes cluster (Minikube, Kind, or cloud provider)
-- Helm v3+
-- kubectl configured
-
-## Deployment
-## Demo
-[![Watch the Demo](./full_demo.gif)](./demos.mp4)
-### Helm Installation (Recommended)
-```bash
-# Add Helm repository
-helm repo add cdn https://prabhanjanvs.github.io/CDN/directdeploy/charts
-helm repo update
-
-# Install the chart
-helm install cdn-deployment cdn/directdeploy --version 0.1.2
-
-### Manual Video Upload
-
-bash
-
-# Download sample video
-wget https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v -O video.mp4
-
-# Upload to storage
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Pod
-metadata:
-  name: video-uploader
-spec:
-  containers:
-  - name: uploader
-    image: nginx:alpine
-    volumeMounts:
-    - name: nginx-storage
-      mountPath: /usr/share/nginx/html
-  volumes:
-  - name: nginx-storage
-    persistentVolumeClaim:
-      claimName: nginx-storage
-EOF
-
-kubectl cp video.mp4 video-uploader:/usr/share/nginx/html/video.mp4
-
-## Accessing the Service
-
-bash
-
-kubectl get svc cdn-deployment-nginx-service
-
-Open  `http://<NODE_IP>:<NODEPORT>`  in your browser to view the video.
-```
-
-## Architecture Details
-
-| Component       | Technology | Port  | Description                          |
-|----------------|------------|-------|--------------------------------------|
-| Video Storage  | Nginx      | 80    | Hosts video files with persistent storage |
-| Cache Layer    | Redis      | 6379  | Temporary video metadata caching     |
-| Frontend       | Flask+Nginx| 5000  | Streams videos through Nginx proxy   |
-
-
-```mermaid
-graph TD
-    A[User] <--> B[Flask Frontend:5000]
-    B <--> C[Nginx Server:80]
-    B <--> D[Redis Cache:6379]
-    C <--> E[(Persistent Storage)]
-```
-
-| Chart Type       | Location               | Purpose                     |
-|------------------|------------------------|-----------------------------|
-| Direct Deployment | `/directdeploy`        | Zero-config production setup|
-| Configurable     | `/helm`                | Customizable deployment     |
-
-## Scaling to Production
-
-1.  Add TLS termination
-    
-2.  Configure Redis persistence
-
-3.  Add monitoring (Prometheus metrics)
-
-
 # GCP Terraform + GKE Deployment
 
 This repository contains Terraform and Kubernetes manifests to provision a VPC and a GKE cluster on Google Cloud and deploy workloads to it. It also shows how to configure cloud credentials, pass the VPC name to the GKE module, and update a Kubernetes Deployment (e.g., to point to an S3 bucket or other object store).
@@ -122,7 +26,7 @@ This repository contains Terraform and Kubernetes manifests to provision a VPC a
 * `kubectl` installed.
 * Optional: `aws` CLI if you manage an S3 bucket on AWS.
 * A service account JSON key (recommended) for Terraform to authenticate to GCP.
-* I did however have showed few of my project ids and s3 bucket links, which i will be deleting anyhow. So make and run your own resources.
+
 ### Enable required GCP APIs
 
 ```bash
@@ -326,7 +230,7 @@ kubectl get pods -w
 
 ## 5. Using S3 (AWS) vs GCS
 
-*  I have an S3 bucket in the USA region and run the GKE cluster in `south-asia` region. Plan to remove the S3 bucket later and use a common bucket. Both work; change the `VIDEO_BUCKET_URL` accordingly.
+* You said you currently have an S3 bucket in the USA region and run the GKE cluster in `south-asia` region. If you plan to remove the S3 bucket later and use a common bucket, decide whether to use AWS S3 or Google Cloud Storage (GCS). Both work; change the `VIDEO_BUCKET_URL` accordingly.
 
 * If you want to make it cross-cloud:
 
@@ -354,6 +258,8 @@ Also remove the service account key from where you stored it, if needed:
 ```bash
 rm ~/gcp-tf-demo-key.json
 ```
+
+If you created any AWS S3 bucket and want to remove it, use the AWS CLI or console to delete objects and bucket.
 
 ---
 
@@ -401,11 +307,11 @@ terraform destroy -var-file=../terraform.tfvars
 
 ---
 
+## Final notes
+
+* The attached `README` content shows the end-to-end flow for VPC and GKE using Terraform. Adjust variables and IAM bindings to follow your security model.
+* If you want, I can also generate example `main.tf` files for a simple VPC module and a basic GKE cluster Terraform configuration, or the `deployment.yaml` ready-to-edit file for your app. Tell me which one you'd like next.
+
 ---
 
 *Happy provisioning!*
-
-
-
-
-
