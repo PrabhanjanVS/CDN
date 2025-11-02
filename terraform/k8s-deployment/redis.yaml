@@ -1,0 +1,81 @@
+---
+# Redis ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    port 6379
+    appendonly no
+    save ""
+    maxmemory 3gb
+    maxmemory-policy allkeys-lru
+    requirepass user
+    protected-mode no
+
+---
+# Redis Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secrets
+type: Opaque
+stringData:
+  REDIS_PASSWORD: "user"
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: config
+          mountPath: /usr/local/etc/redis/redis.conf
+          subPath: redis.conf
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secrets
+              key: REDIS_PASSWORD
+        command: ["redis-server"]
+        args: ["/usr/local/etc/redis/redis.conf"]
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
