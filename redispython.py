@@ -8,7 +8,7 @@ import os
 VIDEO_SERVER_HOST = os.environ['VIDEO_SERVER_HOST']
 REDIS_HOST = os.environ['REDIS_HOST']
 REDIS_PORT = int(os.environ['REDIS_PORT'])
-#REDIS_USER = os.environ['REDIS_USER']
+REDIS_USER = os.environ['REDIS_USER']
 REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
@@ -18,6 +18,7 @@ try:
         host=REDIS_HOST,
         port=REDIS_PORT,
         db=0,
+        username=REDIS_USER,
         password=REDIS_PASSWORD,
         decode_responses=False  # Binary chunks
     )
